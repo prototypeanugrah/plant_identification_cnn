@@ -20,7 +20,6 @@ This project focuses on the classification of Indian plant leaf species using de
       year         = 2024,
       url          = {https://huggingface.co/datasets/avaishnav/Indian-plant-leaves-species},
       publisher    = {Hugging Face},
-      doi          = {10.57967/hf/1234},
       license      = {Apache-2.0}
     }
     ```
