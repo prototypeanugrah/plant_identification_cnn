@@ -14,10 +14,10 @@ This project focuses on the classification of Indian plant leaf species using de
   - See the [dataset card on Hugging Face](https://huggingface.co/datasets/avaishnav/Indian-plant-leaves-species) for detailed information, usage examples, and citation instructions.
   - **Citation:**
     ```bibtex
-    @dataset{vaishnav2024indian,
+    @dataset{vaishnav2025indian,
       author       = {Vaishnav, Anugrah},
       title        = {Indian Plant Leaves Species},
-      year         = 2024,
+      year         = 2025,
       url          = {https://huggingface.co/datasets/avaishnav/Indian-plant-leaves-species},
       publisher    = {Hugging Face},
       license      = {Apache-2.0}
