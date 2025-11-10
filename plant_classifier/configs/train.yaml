@@ -1,0 +1,5 @@
+# Model configs
+model_path: "google/vit-base-patch16-224-in21k"
+epochs: 5
+lr: 2e-4
+device: 'mps'
