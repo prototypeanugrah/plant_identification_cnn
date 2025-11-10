@@ -1,4 +1,6 @@
-from plant_classifier import DATA_CONFIG
+import mlflow
+
+from plant_classifier import DATA_CONFIG, PROCESSOR
 from plant_classifier.entities.load_data import load_data
 from plant_classifier.entities.model import train_model
 from plant_classifier.entities.preproces import preprocess
@@ -21,7 +23,15 @@ def training_pipeline():
 
     # Train the model
     print("Training the model...")
-    train_results = trainer.train()
+    with mlflow.start_run():
+        train_results = trainer.train()
+        metrics = trainer.evaluate(test_data)
+        model_info = mlflow.transformers.log_model(
+            transformers_model={"model": trainer.model, "tokenizer": PROCESSOR},
+            task="image-classification",
+            artifact_path="image_classifier",
+            input_example=train_data[0]["image"],
+        )
 
     # Save the trained model
     print("Saving the trained model...")
