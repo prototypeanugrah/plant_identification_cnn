@@ -1,10 +1,16 @@
 from pathlib import Path
 
 import evaluate
+import mlflow
 from transformers import ViTImageProcessor
 
 from plant_classifier.configs import DataConfig, TrainConfig
 from plant_classifier.utils.utils import load_config
+
+# Initialize MLFlow
+# mlflow.set_tracking_uri("sqlite:///mlflow.db")
+mlflow.set_tracking_uri("http://localhost:5000")
+mlflow.set_experiment("plant-classifier-experiment")
 
 # Load the configuration
 data_config = load_config(Path("plant_classifier/configs/data.yaml"))
