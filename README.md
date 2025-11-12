@@ -1,69 +1,66 @@
-# Indian Plant Leaf Species Classification
+# Plant Species Classifier
 
-## Project Overview
-This project focuses on the classification of Indian plant leaf species using deep learning. Leveraging a high-quality, open-source dataset, the goal is to build and evaluate image classification models that can accurately identify plant species from leaf images. The project is ideal for research and educational purposes in computer vision, plant biology, and machine learning.
+Computer-vision workflow that identifies Indian plant species from a single leaf photo, tracks every experiment with MLflow, and surfaces drift signals so the model stays reliable after deployment.
 
-## Dataset: Indian Plant Leaves Species
-- **Source:** [Hugging Face Datasets](https://huggingface.co/datasets/avaishnav/Indian-plant-leaves-species)
-- **Description:**
-  - 592 high-resolution images of leaves from 12 different Indian plant species
-  - Suitable for image classification and related computer vision tasks
-  - Provided in `imagefolder` format
-  - Licensed under [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-- **Dataset Card & Citation:**
-  - See the [dataset card on Hugging Face](https://huggingface.co/datasets/avaishnav/Indian-plant-leaves-species) for detailed information.
+![Streamlit data drift dashboard](assets/app.png)
 
-## Code Implementation Summary (`hf_training.ipynb`)
-The main workflow is implemented in the Jupyter notebook `hf_training.ipynb`, which covers:
-- **Data Loading:** Loading the dataset directly from Hugging Face using the `datasets` library.
-- **Preprocessing:** Image transformations and preparation for model input.
-- **Visualization:** Displaying sample images and class distributions.
-- **Model Setup:** Using Hugging Face Transformers to configure a Vision Transformer (ViT) model for image classification.
-- **Training:** Fine-tuning the model on the leaf dataset with PyTorch and Hugging Face Trainer.
-- **Evaluation:** Assessing model performance and visualizing results.
+## Why it matters
+- Gives botanists and farmers instant feedback instead of waiting for manual identification.
+- Wire up reproducible training, MLflow governance, and post-training monitoring end-to-end.
+- Impact: (classification + real-time drift) and engineering rigor (pipelines, logging, metrics).
 
-## Installation & Setup
-1. **Install [uv](https://github.com/astral-sh/uv):**
-   ```bash
-   pip install uv
-   ```
-2. **Install dependencies:**
-   ```bash
-   uv pip install -r requirements.txt
-   ```
+## System at a glance
+- **Data + Model:** Fine-tunes `google/vit-base-patch16-224-in21k` on the 592-image [Indian Plant Leaves Species](https://huggingface.co/datasets/avaishnav/Indian-plant-leaves-species) dataset (12 label classes, Apache-2.0).
+- **Experiment tracking:** MLflow (`sqlite:///mlflow.db`) stores parameters, metrics, model artifacts, torch checkpoints, and all EDA charts (class balance, pixel stats, sample predictions).
+- **Post-training monitoring:** Drift detector compares pixel, deep-feature, and confidence distributions against saved reference stats; Streamlit visualizes the health of each dimension.
+- **User experience:** Streamlit app delivers predictions, confidence, and drift flags in one view for technical and non-technical stakeholders.
 
-## Usage
+## Setup
+```bash
+pip install uv
+uv venv
+source .venv/bin/activate
+uv sync
+```
 
-### Training
-
+## Pipelines & Commands
+### Training pipeline (fine-tuning + EDA logging)
 ```bash
 uv run main.py --mode train
 ```
+This pulls data from Hugging Face, performs preprocessing, runs the ViT Trainer, evaluates on held-out data, logs metrics/figures/models to MLflow, and saves dataset splits for monitoring.
 
-- Run the notebook `hf_training.ipynb` to reproduce the experiments, train the model, and evaluate results.
-- You can modify the notebook to experiment with different models or hyperparameters.
+### Inference pipeline (batch/script usage)
+```bash
+uv run python - <<'PY'
+from pathlib import Path
+from PIL import Image
+from plant_classifier.pipelines import inference_pipeline
 
-### Streamlit App with Drift Detection and EDA
-This project includes a Streamlit web application with real-time data drift detection:
+image = Image.open(Path("path/to_leaf.jpg"))
+result = inference_pipeline(image, include_drift=False)
+print(result)
+PY
+```
+Returns the ranked label list with scores; enable `include_drift=True` when drift stats exist (see next step).
 
-1. **Set up drift detection** (one-time):
-   ```bash
-   python scripts/compute_drift_reference.py
-   ```
+### Drift reference computation (post-training baseline)
+```bash
+uv run python scripts/compute_drift_reference.py
+```
+Builds pixel, embedding, and confidence distributions from the validation split and stores them under `plant_classifier/artifacts/drift_reference/reference_stats.pkl`.
 
-2. **Run the app**:
-   ```bash
-   streamlit run app.py
-   ```
+### Streamlit monitoring + inference UI
+```bash
+streamlit run app.py
+```
+Uploads images, performs inference, and shows visual/feature/performance drift panels plus EDA figures—ideal for demos or lightweight production monitoring.
 
-3. **Features**:
-   - Upload plant leaf images for classification
-   - Get predictions with confidence scores
-   - Monitor data drift using Wasserstein distance:
-     - **Visual Drift**: Pixel distribution changes
-     - **Feature Drift**: Model embedding changes
-     - **Performance Drift**: Confidence degradation
-
+### MLflow UI (experiments, EDA, post-training metrics)
+```bash
+mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
+```
+Compare runs, inspect logged EDA images, download models, and register promotion-ready versions in `PlantClassifierHfTraining`.
 
 ## License
-This project and dataset are licensed under the Apache-2.0 License. See the [dataset card](https://huggingface.co/datasets/avaishnav/Indian-plant-leaves-species) and repository files for details.
+Project code and dataset follow Apache-2.0; see repository files and the dataset card for details.
