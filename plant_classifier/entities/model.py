@@ -11,6 +11,7 @@ from plant_classifier.entities.evaluator import compute_metrics
 
 
 def train_model(
+    run_name: str,
     train_data: Dataset,
     validation_data: Dataset,
 ):
@@ -22,30 +23,37 @@ def train_model(
         train_data (Dataset): The train data.
         validation_data (Dataset): The validation data.
     """
+
+    # Get the id2label and label2id mappings
     labels = train_data.features["label"].names
+    id2label = {i: label for i, label in enumerate(labels)}
+    label2id = {label: i for i, label in enumerate(labels)}
+
     model = ViTForImageClassification.from_pretrained(
-        TRAIN_CONFIG.model_path, num_labels=len(labels)
+        TRAIN_CONFIG.model_path,
+        num_labels=len(labels),
+        id2label=id2label,
+        label2id=label2id,
     )
 
     training_args = TrainingArguments(
-        run_name="vit-base-plants-demo-v2",
-        output_dir="./experiments",
+        run_name=run_name,
+        output_dir=DATA_CONFIG.save_dir,
         per_device_train_batch_size=DATA_CONFIG.batch_size,
         per_device_eval_batch_size=DATA_CONFIG.batch_size,
-        eval_strategy="steps",
-        logging_strategy="steps",
+        eval_strategy=TRAIN_CONFIG.eval_strategy,
+        logging_strategy=TRAIN_CONFIG.logging_strategy,
         num_train_epochs=TRAIN_CONFIG.epochs,
         # fp16=True,
-        save_steps=100,
-        eval_steps=100,
-        logging_steps=10,
+        # save_steps=TRAIN_CONFIG.save_steps,
+        eval_steps=TRAIN_CONFIG.eval_steps,
+        logging_steps=TRAIN_CONFIG.logging_steps,
         learning_rate=TRAIN_CONFIG.lr,
-        save_total_limit=2,
-        remove_unused_columns=False,
-        push_to_hub=False,
-        load_best_model_at_end=True,
+        remove_unused_columns=TRAIN_CONFIG.remove_unused_columns,
+        push_to_hub=TRAIN_CONFIG.push_to_hub,
+        load_best_model_at_end=TRAIN_CONFIG.load_best_model_at_end,
         dataloader_num_workers=DATA_CONFIG.num_workers,
-        report_to="mlflow",
+        # report_to=TRAIN_CONFIG.report_to,
     )
 
     trainer = Trainer(

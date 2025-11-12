@@ -1,5 +1,5 @@
 dataset_name: "avaishnav/Indian-plant-leaves-species"
 model_path: "google/vit-base-patch16-224-in21k"
-batch_size: 256
-num_workers: 8
+batch_size: 8
+num_workers: 2
 save_dir: "plant_classifier/artifacts"

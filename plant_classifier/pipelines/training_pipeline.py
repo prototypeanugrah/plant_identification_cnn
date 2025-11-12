@@ -1,47 +1,60 @@
 import mlflow
 
-from plant_classifier import DATA_CONFIG, PROCESSOR
+from plant_classifier import PROCESSOR, TRAIN_CONFIG
 from plant_classifier.entities.load_data import load_data
 from plant_classifier.entities.model import train_model
 from plant_classifier.entities.preproces import preprocess
+from plant_classifier.utils.utils import create_signature
 
 
 def training_pipeline():
     """
     Training pipeline.
     """
-    train_data, validation_data, test_data, id2label = load_data()
+    train_data, validation_data, test_data, _ = load_data()
+
+    # Keep original dataset for signature generation (needs original images, not preprocessed)
+    sample_train_data = train_data[0]["image"]
 
     train_data = train_data.with_transform(preprocess)
     validation_data = validation_data.with_transform(preprocess)
     test_data = test_data.with_transform(preprocess)
 
     trainer = train_model(
+        run_name=TRAIN_CONFIG.run_name,
         train_data=train_data,
         validation_data=validation_data,
     )
 
     # Train the model
-    print("Training the model...")
-    with mlflow.start_run():
-        train_results = trainer.train()
-        metrics = trainer.evaluate(test_data)
-        model_info = mlflow.transformers.log_model(
-            transformers_model={"model": trainer.model, "tokenizer": PROCESSOR},
-            task="image-classification",
-            artifact_path="image_classifier",
-            input_example=train_data[0]["image"],
+    print("Training started...")
+    with mlflow.start_run() as run:
+        trainer.train()
+
+    # Log the model with signature
+    with mlflow.start_run(run_id=run.info.run_id):
+        image_classifier_pipeline, signature = create_signature(
+            sample_image=sample_train_data,
+            trainer=trainer,
+            image_processor=PROCESSOR,
         )
 
-    # Save the trained model
-    print("Saving the trained model...")
-    trainer.save_model(DATA_CONFIG.save_dir)
-    trainer.log_metrics("train", train_results.metrics)
-    trainer.save_metrics("train", train_results.metrics)
-    trainer.save_state()
+        # Log model with signature
+        mlflow.transformers.log_model(
+            transformers_model=image_classifier_pipeline,
+            task="image-classification",
+            name="image_classifier",
+            signature=signature,
+            registered_model_name="PlantClassifierHfTraining",
+        )
 
-    # Evaluate the model
-    print("Evaluating the model...")
-    metrics = trainer.evaluate(test_data)
-    trainer.log_metrics("eval", metrics)
-    trainer.save_metrics("eval", metrics)
+        # Evaluate the trained model
+        print("Evaluating the model...")
+        mlflow.log_metrics(
+            trainer.evaluate(
+                eval_dataset=test_data,
+                metric_key_prefix="test",
+            ),
+            # run_id=run.info.run_id,
+        )
+    print("Training completed...")

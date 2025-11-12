@@ -1,29 +1,35 @@
-from transformers import (
-    Trainer,
-    ViTForImageClassification,
-)
+from typing import Dict
 
-from plant_classifier import DATA_CONFIG, PROCESSOR
-from plant_classifier.entities.load_data import load_data
+import mlflow
+from PIL import Image
 
 
-def inference_pipeline():
+def inference_pipeline(image: Image.Image) -> Dict:
     """
     Inference pipeline.
+
+    Args:
+        image (Image.Image): The image to predict. Pipeline will make
+        predictions on the image.
+
+    Returns:
+        Dict: A dictionary containing the predicted labels and the confidence scores.
     """
 
-    _, _, test_data, id2label = load_data()
+    registered_model_name = "PlantClassifierHfTraining"
+    model_version = "latest"
+    model_uri = f"models:/{registered_model_name}/{model_version}"
 
-    model = ViTForImageClassification.from_pretrained(DATA_CONFIG.save_dir)
+    # Load the model as a pipeline (preprocessing is included)
+    pipeline = mlflow.transformers.load_model(
+        model_uri=model_uri,
+    )
 
-    eval_trainer = Trainer(model=model, processing_class=PROCESSOR)
+    # Make prediction on the image
+    print("Making prediction on the image...")
+    pred = pipeline(image)
+    return pred
 
-    predictions = eval_trainer.predict(test_data)
-    pred_labels = predictions.predictions.argmax(axis=-1)
-    mapped_preds = [id2label[pred] for pred in pred_labels]
-    actual_labels = [
-        test_data.features["label"].names[test_data[i]["labels"]]
-        for i in range(test_data.num_rows)
-    ]
-    print(f"Predicted labels: {mapped_preds[:10]}")
-    print(f"Actual labels: {actual_labels[:10]}")
+
+if __name__ == "__main__":
+    inference_pipeline()

@@ -1,5 +1,17 @@
 # Model configs
 model_path: "google/vit-base-patch16-224-in21k"
-epochs: 5
+epochs: 2
 lr: 2e-4
 device: 'cuda'
+mlflow_tracking_uri: "sqlite:///mlflow.db"
+mlflow_experiment_name: "plant-classifier-experiment"
+run_name: "vit-base-plants-demo-v1"
+eval_strategy: "steps"
+logging_strategy: "steps"
+save_steps: 100
+eval_steps: 100
+logging_steps: 50
+remove_unused_columns: False
+push_to_hub: False
+load_best_model_at_end: True
+report_to: "mlflow"

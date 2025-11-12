@@ -11,3 +11,6 @@ wheels/
 
 # Artifacts
 mlruns/
+experiments/
+artifacts/
+
