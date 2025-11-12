@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from plant_classifier import PROCESSOR
+from plant_classifier.resources import PROCESSOR
 
 
 def preprocess(

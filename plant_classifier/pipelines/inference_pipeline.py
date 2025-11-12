@@ -3,6 +3,8 @@ from typing import Dict
 import mlflow
 from PIL import Image
 
+from plant_classifier.config import TRAIN_CONFIG
+
 
 def inference_pipeline(image: Image.Image) -> Dict:
     """
@@ -15,6 +17,8 @@ def inference_pipeline(image: Image.Image) -> Dict:
     Returns:
         Dict: A dictionary containing the predicted labels and the confidence scores.
     """
+    # Set MLflow tracking URI to match training
+    mlflow.set_tracking_uri(TRAIN_CONFIG.mlflow_tracking_uri)
 
     registered_model_name = "PlantClassifierHfTraining"
     model_version = "latest"
@@ -26,7 +30,6 @@ def inference_pipeline(image: Image.Image) -> Dict:
     )
 
     # Make prediction on the image
-    print("Making prediction on the image...")
     pred = pipeline(image)
     return pred
 

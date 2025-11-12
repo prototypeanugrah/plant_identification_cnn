@@ -1,6 +1,6 @@
 from transformers import EvalPrediction
 
-from plant_classifier import ACCURACY, F1, PRECISION, RECALL
+from plant_classifier.resources import ACCURACY, F1, PRECISION, RECALL
 
 
 def compute_metrics(p: EvalPrediction):

@@ -3,8 +3,8 @@ from typing import Dict, Tuple
 
 from datasets import Dataset, load_dataset, load_from_disk
 
-from plant_classifier import DATA_CONFIG
-from plant_classifier.utils.utils import class_names, visualize_data
+from plant_classifier.config import DATA_CONFIG
+from plant_classifier.utils.utils import class_names
 
 
 def load_data() -> Tuple[
@@ -76,13 +76,6 @@ def load_data() -> Tuple[
     # Get the class names
     id2label = class_names(train_data)
     print(f"Class names: \n{id2label}")
-
-    # Visualize the data
-    visualize_data(
-        dataset=train_data,
-        id2label=id2label,
-        save_dir=Path(DATA_CONFIG.save_dir) / "visualization.png",
-    )
 
     return train_data, validation_data, test_data, id2label
 

@@ -5,7 +5,8 @@ from transformers import (
     ViTForImageClassification,
 )
 
-from plant_classifier import DATA_CONFIG, PROCESSOR, TRAIN_CONFIG
+from plant_classifier.config import DATA_CONFIG, TRAIN_CONFIG
+from plant_classifier.resources import PROCESSOR
 from plant_classifier.entities.collator import collate_fn
 from plant_classifier.entities.evaluator import compute_metrics
 

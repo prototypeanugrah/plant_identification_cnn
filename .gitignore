@@ -14,3 +14,4 @@ mlruns/
 experiments/
 artifacts/
 notebooks/
+mlflow.db

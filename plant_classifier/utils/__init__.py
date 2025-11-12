@@ -1,3 +1,10 @@
-from .utils import class_names, create_signature, load_config, visualize_data
+from .utils import class_names, create_signature, load_config
 
-__all__ = ["class_names", "load_config", "create_signature", "visualize_data"]
+# Note: visualizations are not imported here to avoid circular dependencies
+# Import them directly from plant_classifier.utils.visualizations when needed
+
+__all__ = [
+    "class_names",
+    "load_config",
+    "create_signature",
+]
