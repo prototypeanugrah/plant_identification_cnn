@@ -222,11 +222,13 @@ def visualize_test_predictions(
         true_label = item["label"]
 
         # Get prediction from inference pipeline
-        prediction = inference_pipeline(image)
+        result = inference_pipeline(image, include_drift=False)
 
         # Extract predicted label and confidence
-        # inference_pipeline returns a list with dict: [{'label': 'class_name', 'score': confidence}]
-        pred_dict = prediction[0] if isinstance(prediction, list) else prediction
+        # inference_pipeline returns a dict with 'predictions' key containing a list
+        # Each prediction has 'label' and 'score' keys
+        predictions = result["predictions"]
+        pred_dict = predictions[0] if isinstance(predictions, list) else predictions
         pred_label_name = pred_dict["label"]
         confidence = pred_dict["score"]
 

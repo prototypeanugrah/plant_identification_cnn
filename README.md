@@ -6,23 +6,12 @@ This project focuses on the classification of Indian plant leaf species using de
 ## Dataset: Indian Plant Leaves Species
 - **Source:** [Hugging Face Datasets](https://huggingface.co/datasets/avaishnav/Indian-plant-leaves-species)
 - **Description:**
-  - 542 high-resolution images of leaves from 12 different Indian plant species
+  - 592 high-resolution images of leaves from 12 different Indian plant species
   - Suitable for image classification and related computer vision tasks
   - Provided in `imagefolder` format
   - Licensed under [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 - **Dataset Card & Citation:**
-  - See the [dataset card on Hugging Face](https://huggingface.co/datasets/avaishnav/Indian-plant-leaves-species) for detailed information, usage examples, and citation instructions.
-  - **Citation:**
-    ```bibtex
-    @dataset{vaishnav2025indian,
-      author       = {Vaishnav, Anugrah},
-      title        = {Indian Plant Leaves Species},
-      year         = 2025,
-      url          = {https://huggingface.co/datasets/avaishnav/Indian-plant-leaves-species},
-      publisher    = {Hugging Face},
-      license      = {Apache-2.0}
-    }
-    ```
+  - See the [dataset card on Hugging Face](https://huggingface.co/datasets/avaishnav/Indian-plant-leaves-species) for detailed information.
 
 ## Code Implementation Summary (`hf_training.ipynb`)
 The main workflow is implemented in the Jupyter notebook `hf_training.ipynb`, which covers:
@@ -44,8 +33,37 @@ The main workflow is implemented in the Jupyter notebook `hf_training.ipynb`, wh
    ```
 
 ## Usage
+
+### Training
+
+```bash
+uv run main.py --mode train
+```
+
 - Run the notebook `hf_training.ipynb` to reproduce the experiments, train the model, and evaluate results.
 - You can modify the notebook to experiment with different models or hyperparameters.
+
+### Streamlit App with Drift Detection and EDA
+This project includes a Streamlit web application with real-time data drift detection:
+
+1. **Set up drift detection** (one-time):
+   ```bash
+   python scripts/compute_drift_reference.py
+   ```
+
+2. **Run the app**:
+   ```bash
+   streamlit run app.py
+   ```
+
+3. **Features**:
+   - Upload plant leaf images for classification
+   - Get predictions with confidence scores
+   - Monitor data drift using Wasserstein distance:
+     - **Visual Drift**: Pixel distribution changes
+     - **Feature Drift**: Model embedding changes
+     - **Performance Drift**: Confidence degradation
+
 
 ## License
 This project and dataset are licensed under the Apache-2.0 License. See the [dataset card](https://huggingface.co/datasets/avaishnav/Indian-plant-leaves-species) and repository files for details.
