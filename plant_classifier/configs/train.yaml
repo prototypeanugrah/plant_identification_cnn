@@ -5,7 +5,10 @@ lr: 2e-4
 device: 'cuda'
 mlflow_tracking_uri: "sqlite:///mlflow.db"
 mlflow_experiment_name: "plant-classifier-experiment"
+mlflow_registered_name: "dev.mlflow_testing.PlantClassifierHfTraining"
 run_name: "vit-base-plants-demo-v1"
+task: "image-classification"
+name: "image_classifier"
 eval_strategy: "steps"
 logging_strategy: "steps"
 save_steps: 100

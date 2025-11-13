@@ -1,0 +1,4 @@
+min_precision: 0.5
+min_recall: 0.5
+min_f1: 0.5
+min_accuracy: 0.5

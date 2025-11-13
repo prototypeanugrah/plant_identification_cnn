@@ -1,3 +1,3 @@
-from .schema import DataConfig, TrainConfig
+from .schema import DataConfig, DeployConfig, TrainConfig
 
-__all__ = ["DataConfig", "TrainConfig"]
+__all__ = ["DataConfig", "TrainConfig", "DeployConfig"]

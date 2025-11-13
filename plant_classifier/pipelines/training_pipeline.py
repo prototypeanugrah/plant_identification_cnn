@@ -1,9 +1,11 @@
 import mlflow
+from rich import print
 
 from plant_classifier.config import TRAIN_CONFIG
 from plant_classifier.entities.load_data import load_data
 from plant_classifier.entities.model import train_model
 from plant_classifier.entities.preproces import preprocess
+from plant_classifier.mlflow_databricks_integration import setup_mlflow
 from plant_classifier.resources import PROCESSOR
 from plant_classifier.utils.utils import create_signature
 from plant_classifier.utils.visualizations import (
@@ -18,9 +20,15 @@ def training_pipeline():
     """
     Training pipeline.
     """
+
+    print("[purple]=" * 80)
+    print(
+        f"[purple]Training pipeline started with run name: {TRAIN_CONFIG.run_name}[/purple]"
+    )
+    print("[purple]=" * 80)
+
     # Initialize MLFlow
-    mlflow.set_tracking_uri(TRAIN_CONFIG.mlflow_tracking_uri)
-    mlflow.set_experiment(TRAIN_CONFIG.mlflow_experiment_name)
+    setup_mlflow()
 
     train_data, validation_data, test_data, id2label = load_data()
 
@@ -47,41 +55,41 @@ def training_pipeline():
     )
 
     # Train the model
-    print("Training started...")
-    with mlflow.start_run() as run:
+    with mlflow.start_run(run_name=TRAIN_CONFIG.run_name):
+        print("[green]Training started[/green]")
         trainer.train()
+        print("[green]Training completed[/green]")
 
-    # Log the model with signature
-    with mlflow.start_run(run_id=run.info.run_id):
+        # Create the signature
         image_classifier_pipeline, signature = create_signature(
             sample_image=sample_train_data,
             trainer=trainer,
             image_processor=PROCESSOR,
         )
 
-        # Log model with signature
         mlflow.transformers.log_model(
             transformers_model=image_classifier_pipeline,
-            task="image-classification",
-            name="image_classifier",
+            task=TRAIN_CONFIG.task,
+            name=TRAIN_CONFIG.name,
             signature=signature,
-            registered_model_name="PlantClassifierHfTraining",
+            # registered_model_name="dev.mlflow_testing.PlantClassifierHfTraining",
         )
 
         # Evaluate the trained model
-        print("Evaluating the model...")
+        print("[green]Evaluating the model...[/green]")
         mlflow.log_metrics(
             trainer.evaluate(
                 eval_dataset=transformed_test_data,
                 metric_key_prefix="test",
             ),
         )
+        print("[green]Evaluation completed[/green]")
 
         # Create test predictions visualization
-        print("Generating test predictions visualization...")
         test_predictions_plot = visualize_test_predictions(
             dataset=test_data,
             id2label=id2label,
+            pipeline=image_classifier_pipeline,
         )
 
         # Log the EDA figures to MLFlow
@@ -124,4 +132,6 @@ def training_pipeline():
             artifact_file="visualize_test_predictions.png",
         )
 
-    print("Training completed...")
+    print("[purple]=" * 80)
+    print(f"[purple]Training completed with run name: {TRAIN_CONFIG.run_name}[/purple]")
+    print("[purple]=" * 80)

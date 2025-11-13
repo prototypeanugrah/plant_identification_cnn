@@ -1,15 +1,15 @@
 import base64
 import io
-from pathlib import Path
 from typing import Any, Dict, Tuple
 
 import pandas as pd
-import yaml
 from datasets import Dataset
 from mlflow.models import ModelSignature, infer_signature
 from mlflow.transformers import generate_signature_output
 from PIL import Image
 from transformers import Pipeline, Trainer, pipeline
+
+from plant_classifier.config import TRAIN_CONFIG
 
 
 def class_names(dataset: Dataset) -> Dict[int, str]:
@@ -31,11 +31,6 @@ def class_names(dataset: Dataset) -> Dict[int, str]:
     return id2label
 
 
-def load_config(config_path: Path) -> Dict[str, Any]:
-    with open(config_path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
-
-
 def create_signature(
     sample_image: Image.Image, trainer: Trainer, image_processor: Any
 ) -> Tuple[Pipeline, ModelSignature]:
@@ -55,9 +50,8 @@ def create_signature(
         raise ValueError(msg)
 
     # Create a pipeline for signature generation
-    print("Generating model signature...")
     image_classifier_pipeline = pipeline(
-        task="image-classification",
+        task=TRAIN_CONFIG.task,
         model=trainer.model,
         image_processor=image_processor,
     )
@@ -70,12 +64,13 @@ def create_signature(
     # Wrap the encoded image in a DataFrame to capture the column name in the schema
     sample_input_df = pd.DataFrame({"image": [sample_image_base64]})
 
-    # Use generate_signature_output for proper format
-    sample_output = generate_signature_output(
-        image_classifier_pipeline, sample_input_df
+    # Generate signature using MLflow's transformer-specific function
+    # This properly handles the pipeline output format (list of dicts)
+    signature_output = generate_signature_output(
+        image_classifier_pipeline, sample_image_base64
     )
 
     # Create signature from the same raw input type the pyfunc wrapper expects
-    signature = infer_signature(sample_input_df, sample_output)
+    signature = infer_signature(sample_input_df, signature_output)
 
     return image_classifier_pipeline, signature

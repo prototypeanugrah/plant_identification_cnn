@@ -6,9 +6,9 @@ from transformers import (
 )
 
 from plant_classifier.config import DATA_CONFIG, TRAIN_CONFIG
-from plant_classifier.resources import PROCESSOR
 from plant_classifier.entities.collator import collate_fn
 from plant_classifier.entities.evaluator import compute_metrics
+from plant_classifier.resources import PROCESSOR
 
 
 def train_model(
@@ -45,8 +45,6 @@ def train_model(
         eval_strategy=TRAIN_CONFIG.eval_strategy,
         logging_strategy=TRAIN_CONFIG.logging_strategy,
         num_train_epochs=TRAIN_CONFIG.epochs,
-        # fp16=True,
-        # save_steps=TRAIN_CONFIG.save_steps,
         eval_steps=TRAIN_CONFIG.eval_steps,
         logging_steps=TRAIN_CONFIG.logging_steps,
         learning_rate=TRAIN_CONFIG.lr,
@@ -54,7 +52,6 @@ def train_model(
         push_to_hub=TRAIN_CONFIG.push_to_hub,
         load_best_model_at_end=TRAIN_CONFIG.load_best_model_at_end,
         dataloader_num_workers=DATA_CONFIG.num_workers,
-        # report_to=TRAIN_CONFIG.report_to,
     )
 
     trainer = Trainer(

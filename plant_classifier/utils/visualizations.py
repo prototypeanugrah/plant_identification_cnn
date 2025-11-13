@@ -184,6 +184,7 @@ def visualize_test_predictions(
     n_images: int = 12,
     nrows: int = 3,
     ncols: int = 4,
+    pipeline=None,
 ) -> Figure:
     """
     Visualize predictions on test set images in a grid layout.
@@ -194,6 +195,8 @@ def visualize_test_predictions(
         n_images: number of images to visualize (default: 12)
         nrows: number of rows in grid (default: 3)
         ncols: number of columns in grid (default: 4)
+        pipeline: Optional pretrained pipeline to use for predictions.
+                 If None, will load from MLflow registry via inference_pipeline.
 
     Returns:
         Figure: The generated figure object
@@ -221,16 +224,20 @@ def visualize_test_predictions(
         image = item["image"]
         true_label = item["label"]
 
-        # Get prediction from inference pipeline
-        result = inference_pipeline(image, include_drift=False)
-
-        # Extract predicted label and confidence
-        # inference_pipeline returns a dict with 'predictions' key containing a list
-        # Each prediction has 'label' and 'score' keys
-        predictions = result["predictions"]
-        pred_dict = predictions[0] if isinstance(predictions, list) else predictions
-        pred_label_name = pred_dict["label"]
-        confidence = pred_dict["score"]
+        # Get prediction - use provided pipeline or load from MLflow
+        if pipeline is not None:
+            # Use the provided pipeline directly
+            pred = pipeline(image)
+            pred_dict = pred[0] if isinstance(pred, list) else pred
+            pred_label_name = pred_dict["label"]
+            confidence = pred_dict["score"]
+        else:
+            # Load from MLflow registry via inference_pipeline
+            result = inference_pipeline(image, include_drift=False)
+            predictions = result["predictions"]
+            pred_dict = predictions[0] if isinstance(predictions, list) else predictions
+            pred_label_name = pred_dict["label"]
+            confidence = pred_dict["score"]
 
         # Convert predicted label name back to index
         label2id = {v: k for k, v in id2label.items()}
