@@ -46,7 +46,7 @@ Returns the ranked label list with scores; enable `include_drift=True` when drif
 
 ### Drift reference computation (post-training baseline)
 ```bash
-uv run python scripts/compute_drift_reference.py
+uv run scripts/compute_drift_reference.py
 ```
 Builds pixel, embedding, and confidence distributions from the validation split and stores them under `plant_classifier/artifacts/drift_reference/reference_stats.pkl`.
 
@@ -60,7 +60,12 @@ Uploads images, performs inference, and shows visual/feature/performance drift p
 ```bash
 mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
 ```
-Compare runs, inspect logged EDA images, download models, and register promotion-ready versions in `PlantClassifierHfTraining`.
+Compare runs, inspect logged EDA images, download models, and register promotion-ready versions in the model referenced by `mlflow_registered_model_name`.
+
+### Databricks / Unity Catalog tips
+- Set `MLFLOW_TRACKING_URI`/`MLFLOW_USER`/`DATABRICKS_TOKEN`/`DATABRICKS_HOST` in your environment to enable remote tracking.
+- Update `plant_classifier/configs/train.yaml` → `mlflow_registered_model_name` to the fully-qualified `catalog.schema.model` expected by Unity Catalog (keep the simple name for the legacy workspace registry).
+- Optional: set `MLFLOW_REGISTRY_URI` to `databricks-uc` (Unity Catalog) or `databricks` (legacy) before running the training or drift scripts.
 
 ## License
 Project code and dataset follow Apache-2.0; see repository files and the dataset card for details.

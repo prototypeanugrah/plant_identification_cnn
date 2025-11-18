@@ -8,6 +8,7 @@ from PIL import Image
 
 from plant_classifier.config import DATA_CONFIG, TRAIN_CONFIG
 from plant_classifier.entities.drift_detector import DriftDetector
+from plant_classifier.mlflow_databricks_integration import setup_mlflow
 
 
 def inference_pipeline(image: Image.Image, include_drift: bool = True) -> Dict:
@@ -24,16 +25,17 @@ def inference_pipeline(image: Image.Image, include_drift: bool = True) -> Dict:
             - predictions: List of predicted labels and confidence scores
             - drift_metrics: Drift detection results (if include_drift=True)
     """
-    # Set MLflow tracking URI to match training
-    mlflow.set_tracking_uri(TRAIN_CONFIG.mlflow_tracking_uri)
 
-    registered_model_name = "PlantClassifierHfTraining"
-    model_version = "latest"
-    model_uri = f"models:/{registered_model_name}/{model_version}"
+    print("=" * 80)
+    print(f"Inference pipeline started with run name: {TRAIN_CONFIG.run_name}")
+    print("=" * 80)
+
+    # Setup MLFlow
+    setup_mlflow()
 
     # Load the model as a pipeline (preprocessing is included)
     pipeline = mlflow.transformers.load_model(
-        model_uri=model_uri,
+        model_uri=f"runs:/{TRAIN_CONFIG.run_name}/{TRAIN_CONFIG.name}",
     )
 
     # Make prediction on the image
@@ -45,7 +47,9 @@ def inference_pipeline(image: Image.Image, include_drift: bool = True) -> Dict:
     if include_drift:
         try:
             # Load reference statistics
-            drift_ref_path = Path(DATA_CONFIG.save_dir) / "drift_reference" / "reference_stats.pkl"
+            drift_ref_path = (
+                Path(DATA_CONFIG.save_dir) / "drift_reference" / "reference_stats.pkl"
+            )
 
             if drift_ref_path.exists():
                 with open(drift_ref_path, "rb") as f:

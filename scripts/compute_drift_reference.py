@@ -44,7 +44,7 @@ def main():
     print("\nLoading model from MLflow...")
     mlflow.set_tracking_uri(TRAIN_CONFIG.mlflow_tracking_uri)
 
-    registered_model_name = "PlantClassifierHfTraining"
+    registered_model_name = TRAIN_CONFIG.mlflow_registered_name
     model_version = "latest"
     model_uri = f"models:/{registered_model_name}/{model_version}"
 
